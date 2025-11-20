@@ -23,7 +23,7 @@ void Tablero::insertarFicha(int pY, Ficha ficha){
     }
 
     if (posicion == filas)
-        tablero[filas][pY] = ficha.getColor();
+        tablero[filas - 1][pY] = ficha.getColor();
 }
 
 bool Tablero::hayFicha(int pX, int pY){
