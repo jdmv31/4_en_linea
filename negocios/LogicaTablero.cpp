@@ -1,4 +1,5 @@
 #include "LogicaTablero.h"
+#include "LogicaFicha.h"
 
 Tablero::Tablero(void){
     for (int i = 0; i < filas; i++){
@@ -6,6 +7,23 @@ Tablero::Tablero(void){
             tablero[i][j] = 0;
         }
     }
+}
+
+void Tablero::insertarFicha(int pY, Ficha ficha){
+    int posicion = filas;
+    for (int i = 0; i < filas; i++){
+        if (i == 0 && hayFicha (0,pY))
+            break;
+            // aca deberia ir un mensaje de error indicando que esa columna ya esta llena
+
+        if (hayFicha(i,pY)){
+            posicion = i - 1;
+            tablero[posicion][pY] = ficha.getColor();
+        }
+    }
+
+    if (posicion == filas)
+        tablero[filas][pY] = ficha.getColor();
 }
 
 bool Tablero::hayFicha(int pX, int pY){

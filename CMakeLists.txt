@@ -6,11 +6,24 @@ find_package(raylib CONFIG REQUIRED)
 
 add_library(LogicaFicheros_lib STATIC datos/LogicaFicheros.cpp)
 add_library(LogicaTablero_lib STATIC negocios/LogicaTablero.cpp)
+add_library(LogicaFicha_lib STATIC negocios/LogicaFicha.cpp)
+add_library(Jugador_lib STATIC negocios/Jugador.cpp)
+add_library(Cpu_lib STATIC negocios/Cpu.cpp)
 
-target_include_directories(LogicaFicheros_lib 
+target_include_directories(
+    LogicaFicheros_lib 
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/datos
     LogicaTablero_lib
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/presentacion
+    LogicaFicha_lib
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/presentacion
+    Jugador_lib
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/presentacion
+    Cpu_lib
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/presentacion
 )
@@ -24,4 +37,7 @@ target_link_libraries(4enLinea
         raylib
         LogicaFicheros_lib
         LogicaTablero_lib
+        LogicaFicha_lib
+        Jugador_lib
+        Cpu_lib
 )
