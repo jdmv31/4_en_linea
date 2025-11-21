@@ -1,4 +1,4 @@
-#include "raylib.h"
+#include <raylib.h>
 #include <iostream>
 #include "negocios/LogicaTablero.h"
 #include "datos/LogicaFicheros.h"
@@ -9,7 +9,7 @@ const int anchoPantalla = 800;
 const int altoPantalla = 450;
 
 int main(){
-    InitWindow(anchoPantalla,altoPantalla, "4 en linea");
+    InitWindow(anchoPantalla,altoPantalla, "4 en lineaa");
 
     while (!WindowShouldClose()){
         BeginDrawing();
