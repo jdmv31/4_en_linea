@@ -2,6 +2,7 @@
 #include <iostream>
 #include "negocios/LogicaTablero.h"
 #include "datos/LogicaFicheros.h"
+#include "presentacion/Interfaz.h"
 
 using namespace std;
 
