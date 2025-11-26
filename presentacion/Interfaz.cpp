@@ -88,11 +88,14 @@ void mainloop(void) {
 
     Pantalla pantallaActual = MENU_PRINCIPAL;
     int modoJuego = 0;
-    bool turno = true; // true - ficha roja (1), false - ficha morada (2)
+    bool turno = true; 
 
     std::string textoTurno = ""; 
+    std::string textoVictoria = "";
 
     float tiempoEsperaCpu = 0.0f; 
+    bool juegoTerminado = false;
+    int ganadorID = 0;
 
     Ficha ficha1; ficha1.setColor(true);
     Ficha ficha2; ficha2.setColor(false);
@@ -114,6 +117,7 @@ void mainloop(void) {
     Boton btnRvH(490, 400, 300, 60, "BOT VS BOT", LIME);
     Boton btnVolver(50, 50, 150, 50, "VOLVER", RED);
     Boton btnSalir(50, 50, 150, 50, "SALIR", RED);
+    Boton btnReiniciar(anchoPantalla / 2 - 100, altoPantalla / 2 + 50, 200, 60, "REINICIAR", GOLD);
 
     while (!WindowShouldClose()){
         
@@ -136,91 +140,118 @@ void mainloop(void) {
 
                     matrizVisual.limpiarTablero(); 
                     turno = true; 
+                    juegoTerminado = false;
+                    ganadorID = 0;
                     pantallaActual = JUEGO_EN_MARCHA;
                 }
                 if (btnVolver.FueClickeado()) pantallaActual = MENU_PRINCIPAL;
                 break;
 
             case JUEGO_EN_MARCHA:
-                switch (modoJuego){
-                    case 1:
-                        if (turno) 
-                            textoTurno = "TURNO DE: " + j1.getNombre();
-                        else       
-                            textoTurno = "TURNO DE: " + j2.getNombre();
-                    break;
+                if (!juegoTerminado) {
+                    switch (modoJuego){
+                        case 1:
+                            if (turno) 
+                                textoTurno = "TURNO DE: " + j1.getNombre();
+                            else       
+                                textoTurno = "TURNO DE: " + j2.getNombre();
+                        break;
 
-                    case 2:
-                        if (turno) 
-                            textoTurno = "TURNO DE: " + j1.getNombre();
-                        else       
-                            textoTurno = "TURNO DE: " + bot1.getNombre();
-                    break;
+                        case 2:
+                            if (turno) textoTurno = "TURNO DE: " + j1.getNombre();
+                            else       textoTurno = "TURNO DE: " + bot1.getNombre();
+                        break;
 
-                    case 3:
-                        if (turno) 
-                            textoTurno = "TURNO DE: " + bot2.getNombre();
-                        else       
-                            textoTurno = "TURNO DE: " + bot1.getNombre();
-                    break;
-                }
+                        case 3:
+                            if (turno) textoTurno = "TURNO DE: " + bot2.getNombre();
+                            else       textoTurno = "TURNO DE: " + bot1.getNombre();
+                        break;
+                    }
 
-                switch(modoJuego){
-                    case 1:
-                        if (click) {
-                            if (mousePoint.x >= margenX && mousePoint.x < margenX + anchoTableroPx &&
-                                mousePoint.y >= margenY && mousePoint.y < margenY + altoTableroPx) {
-                                int col = (int)(mousePoint.x - margenX) / TAMANO_CELDA;
-                                if (col >= 0 && col < columnas) {
-                                    if (turno) matrizVisual.insertarFicha(col, ficha1);
-                                    else       matrizVisual.insertarFicha(col, ficha2);
-                                    turno = !turno;
-                                }
-                            }
-                        }
-                    break;
-
-                    case 2:
-                        if (turno) { 
+                    switch(modoJuego){
+                        case 1:
                             if (click) {
                                 if (mousePoint.x >= margenX && mousePoint.x < margenX + anchoTableroPx &&
                                     mousePoint.y >= margenY && mousePoint.y < margenY + altoTableroPx) {
                                     int col = (int)(mousePoint.x - margenX) / TAMANO_CELDA;
                                     if (col >= 0 && col < columnas) {
-                                        matrizVisual.insertarFicha(col, ficha1);
-                                        turno = !turno; 
-                                        tiempoEsperaCpu = 0;
+                                        if (turno) matrizVisual.insertarFicha(col, ficha1);
+                                        else       matrizVisual.insertarFicha(col, ficha2);
+                                        turno = !turno;
                                     }
                                 }
                             }
-                        } else {
+                        break;
+
+                        case 2:
+                            if (turno) { 
+                                if (click) {
+                                    if (mousePoint.x >= margenX && mousePoint.x < margenX + anchoTableroPx &&
+                                        mousePoint.y >= margenY && mousePoint.y < margenY + altoTableroPx) {
+                                        int col = (int)(mousePoint.x - margenX) / TAMANO_CELDA;
+                                        if (col >= 0 && col < columnas) {
+                                            matrizVisual.insertarFicha(col, ficha1);
+                                            turno = !turno; 
+                                            tiempoEsperaCpu = 0;
+                                        }
+                                    }
+                                }
+                            } else {
+                                tiempoEsperaCpu += GetFrameTime();
+                                if (tiempoEsperaCpu > 0.5f) {
+                                    int col = bot1.determinarJugada(matrizVisual);
+                                    matrizVisual.insertarFicha(col, ficha2);
+                                    turno = !turno;
+                                }
+                            }                    
+                        break;
+
+                        case 3:
                             tiempoEsperaCpu += GetFrameTime();
                             if (tiempoEsperaCpu > 0.5f) {
-                                int col = bot1.determinarJugada(matrizVisual);
-                                matrizVisual.insertarFicha(col, ficha2);
+                                int col;
+                                if (turno) {
+                                    col = bot2.determinarJugada(matrizVisual);
+                                    matrizVisual.insertarFicha(col, ficha1);
+                                } else {
+                                    col = bot1.determinarJugada(matrizVisual);
+                                    matrizVisual.insertarFicha(col, ficha2);
+                                }
                                 turno = !turno;
-                            }
-                        }                    
-                    break;
-
-                    case 3:
-                        tiempoEsperaCpu += GetFrameTime();
-                        if (tiempoEsperaCpu > 0.5f) {
-                            int col;
-                            if (turno) {
-                                col = bot2.determinarJugada(matrizVisual);
-                                matrizVisual.insertarFicha(col, ficha1);
-                            } else {
-                                col = bot1.determinarJugada(matrizVisual);
-                                matrizVisual.insertarFicha(col, ficha2);
-                            }
-                            turno = !turno;
-                            tiempoEsperaCpu = 0;
-                        }                    
-                    break;
+                                tiempoEsperaCpu = 0;
+                            }                    
+                        break;
+                    }
+                    
+                    int estado = matrizVisual.comprobarVictoria();
+                    if (estado == 1 || estado == 2) {
+                        juegoTerminado = true;
+                        ganadorID = estado;
+                        
+                        if (modoJuego == 1) {
+                            textoVictoria = (estado == 1) ? "GANADOR: " + j1.getNombre() : "GANADOR: " + j2.getNombre();
+                        } else if (modoJuego == 2) {
+                            textoVictoria = (estado == 1) ? "GANADOR: " + j1.getNombre() : "GANADOR: " + bot1.getNombre();
+                        } else {
+                            textoVictoria = (estado == 1) ? "GANADOR: " + bot2.getNombre() : "GANADOR: " + bot1.getNombre();
+                        }
+                    }
+                } else {
+                    if (btnReiniciar.FueClickeado()) {
+                        matrizVisual.limpiarTablero();
+                        turno = true;
+                        juegoTerminado = false;
+                        ganadorID = 0;
+                        tiempoEsperaCpu = 0;
+                    }
+                    if (btnSalir.FueClickeado()) {
+                        pantallaActual = MENU_PRINCIPAL;
+                        modoJuego = 0;
+                        juegoTerminado = false;
+                    }
                 }
 
-                if (btnSalir.FueClickeado()) {
+                if (!juegoTerminado && btnSalir.FueClickeado()) {
                     pantallaActual = MENU_PRINCIPAL;
                     modoJuego = 0;
                 }
@@ -259,24 +290,28 @@ void mainloop(void) {
                 if (modoJuego == 2) DrawText("MODO: JUGADOR vs BOT", 50, 50, 20, WHITE);
                 if (modoJuego == 3) DrawText("MODO: BOT vs BOT", 50, 50, 20, WHITE);
 
-                if (turno)
-                    DrawText(textoTurno.c_str(), 50, 100, 20, RED);              
-                else 
-                    DrawText(textoTurno.c_str(), 50, 100, 20, VIOLET);
-
-                btnSalir.Dibujar();
+                if (!juegoTerminado) {
+                    if (turno)
+                        DrawText(textoTurno.c_str(), 50, 100, 20, RED);              
+                    else 
+                        DrawText(textoTurno.c_str(), 50, 100, 20, VIOLET);
+                    
+                    btnSalir.Dibujar();
+                } else {
+                    DrawRectangle(0, 0, anchoPantalla, altoPantalla, Fade(BLACK, 0.7f));
+                    
+                    int textWidth = MeasureText(textoVictoria.c_str(), 40);
+                    DrawText(textoVictoria.c_str(), (anchoPantalla - textWidth) / 2, altoPantalla / 2 - 50, 40, YELLOW);
+                    
+                    btnReiniciar.Dibujar();
+                    btnSalir.Dibujar();
+                }
                 break;
 
             case VENTANA_CONTINUAR:
                 DrawText("CONTINUAR PARTIDA", 400, 300, 30, LIGHTGRAY);
                 btnVolver.Dibujar();
             break;
-        }
-
-        int estado = matrizVisual.comprobarVictoria();
-        if (estado == 1 || estado == 2) {
-            matrizVisual.limpiarTablero();
-            turno = true; 
         }
 
         EndDrawing();
