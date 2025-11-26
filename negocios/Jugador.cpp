@@ -1,6 +1,10 @@
 #include "Jugador.h"
 #include <string>
 #include "logicaFicha.h"
+#include "LogicaTablero.h"
+#include <iostream>
+
+using namespace std;
 
 Jugador::Jugador(std::string n, int v,Ficha f){
     nombreJugador = n;

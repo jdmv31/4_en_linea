@@ -10,7 +10,10 @@ class Tablero{
     public:
         Tablero (void);
         void insertarFicha(int pY,Ficha ficha);
+        int getValor (int pX,int pY);
+        void deshacerJugada(int c);
         bool hayFicha(int pX, int pY);
         bool estadoTablero(int param);
-        bool comprobarVictoria(void);
+        int comprobarVictoria(void);
+        bool columnaLibre(int c);
 };
