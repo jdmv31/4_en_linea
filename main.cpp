@@ -2,7 +2,6 @@
 #include "datos/LogicaFicheros.h"
 #include "presentacion/Interfaz.h"
 
-
 int main(){
     mainloop();
 
