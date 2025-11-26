@@ -111,3 +111,12 @@ int Tablero::comprobarVictoria(void) {
     }
     return 0; // Nadie ha ganado aun
 }
+
+
+void Tablero::limpiarTablero(void){
+    for (int i = 0; i < filas;i++){
+        for (int j = 0; j < columnas;j++){
+            tablero[i][j] = 0;
+        }
+    }
+}

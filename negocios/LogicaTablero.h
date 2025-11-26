@@ -16,4 +16,5 @@ class Tablero{
         bool estadoTablero(int param);
         int comprobarVictoria(void);
         bool columnaLibre(int c);
+        void limpiarTablero(void);
 };

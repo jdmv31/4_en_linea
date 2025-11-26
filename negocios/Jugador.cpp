@@ -4,8 +4,6 @@
 #include "LogicaTablero.h"
 #include <iostream>
 
-using namespace std;
-
 Jugador::Jugador(std::string n, int v,Ficha f){
     nombreJugador = n;
     victoriasJugador = v;
@@ -22,4 +20,8 @@ int Jugador::getVictorias(void){
 
 void Jugador::setNombre(std::string n){
     nombreJugador = n;
+}
+
+std::string Jugador::getNombre(void){
+    return nombreJugador;
 }

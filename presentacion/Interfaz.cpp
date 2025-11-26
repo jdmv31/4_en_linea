@@ -1,47 +1,43 @@
 #include "Interfaz.h"
 #include <raylib.h>
+#include "negocios/LogicaTablero.h"
+#include "negocios/LogicaFicha.h"
+#include "negocios/Jugador.h"
+
+#include <iostream>
+using namespace std;
+// eso se borra luego
 
 
-
-// 1. CONSTANTES DEL TABLERO
-#define FILAS 6
-#define COLUMNAS 7
 #define TAMANO_CELDA 80
 #define RADIO_FICHA 35
 
-// --- CLASE BOTÓN (POO) ---
-// Encapsulamos la lógica visual y de interacción para no repetir código
+
+Tablero matrizVisual;
+
 class Boton {
 private:
     Rectangle rect;
     Color colorBase;
-    Color colorHover; // Color cuando pasas el mouse por encima
+    Color colorHover; 
     const char* texto;
     int tamanoTexto;
 
 public:
-    // Constructor
     Boton(float x, float y, float width, float height, const char* text, Color color) {
         rect = { x, y, width, height };
         texto = text;
         colorBase = color;
-        // Creamos un color un poco más claro para el efecto hover
         colorHover = Fade(color, 0.8f); 
         tamanoTexto = 20;
     }
 
-    // Método para dibujar el botón (debe llamarse dentro de BeginDrawing)
     void Dibujar() {
         Vector2 mouse = GetMousePosition();
         bool isHover = CheckCollisionPointRec(mouse, rect);
-
-        // Dibujar base (cambia de color si el mouse está encima)
         DrawRectangleRec(rect, isHover ? colorHover : colorBase);
-        
-        // Dibujar borde decorativo
         DrawRectangleLinesEx(rect, 2, DARKGRAY);
 
-        // Calcular posición para centrar el texto
         int anchoTexto = MeasureText(texto, tamanoTexto);
         int posX = (int)(rect.x + (rect.width - anchoTexto) / 2);
         int posY = (int)(rect.y + (rect.height - tamanoTexto) / 2);
@@ -49,7 +45,6 @@ public:
         DrawText(texto, posX, posY, tamanoTexto, BLACK);
     }
 
-    // Método lógico: devuelve true si se hizo clic en el botón
     bool FueClickeado() {
         Vector2 mouse = GetMousePosition();
         if (CheckCollisionPointRec(mouse, rect)) {
@@ -68,53 +63,68 @@ typedef enum {
     VENTANA_CONTINUAR    
 } Pantalla;
 
+
+void dibujarMatriz(Tablero &tablero, int mX, int mY) {
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            int cx = mX + (j * TAMANO_CELDA) + (TAMANO_CELDA / 2);
+            int cy = mY + (i * TAMANO_CELDA) + (TAMANO_CELDA / 2);
+            
+            int val = matrizVisual.getValor(i,j);     
+            if (val == 0) 
+                DrawCircle(cx, cy, RADIO_FICHA, BLACK); 
+            else if (val == 1)
+                DrawCircle(cx, cy, RADIO_FICHA, RED);
+            else
+                DrawCircle(cx, cy, RADIO_FICHA, PURPLE);   
+        }
+    }
+}
+
 void mainloop(void) { 
-    
-    // --- CONFIGURACIÓN VENTANA ---
     const int anchoPantalla = 1280; 
     const int altoPantalla = 720;
     
-    InitWindow(anchoPantalla, altoPantalla, "4 en Linea - Integrado con POO");
+    InitWindow(anchoPantalla, altoPantalla, "4 en Linea");
     SetTargetFPS(60); 
 
     Color colorMorado = GetColor(0x4525A2FF);
 
     Pantalla pantallaActual = MENU_PRINCIPAL;
     int modoJuego = 0; // 1=HvH, 2=RvR, 3=RvH
-
-    // --- VARIABLES DEL JUEGO ---
-    int matrizVisual[FILAS][COLUMNAS] = {0};
+    bool turno = true; // true - ficha roja false - ficha morada
+    
+    Ficha ficha1;
+    ficha1.setColor(true);
+    Ficha ficha2;
+    ficha2.setColor(false);
+    Jugador j1 = Jugador("Josue",0,ficha1);
+    Jugador j2 = Jugador("Nicole",0,ficha2);
 
     // Cálculos para centrar el tablero
-    int anchoTableroPx = COLUMNAS * TAMANO_CELDA;
-    int altoTableroPx = FILAS * TAMANO_CELDA;
+    int anchoTableroPx = columnas * TAMANO_CELDA;
+    int altoTableroPx = filas * TAMANO_CELDA;
     int margenX = (anchoPantalla - anchoTableroPx) / 2;
     int margenY = (altoPantalla - altoTableroPx) / 2 + 50;
 
     // --- INSTANCIACIÓN DE OBJETOS (BOTONES) ---
-    // Ahora creamos objetos de la clase Boton
-    
-    // Menu Principal
     Boton btnIniciar(300, 300, 350, 80, "INICIAR PARTIDA", LIGHTGRAY);
     Boton btnContinuar(680, 300, 350, 80, "CONTINUAR", LIGHTGRAY);
 
     // Selección de Modo
-    Boton btnHvH(490, 200, 300, 60, "HUMANO vs HUMANO", SKYBLUE);
-    Boton btnRvR(490, 300, 300, 60, "ROBOT vs ROBOT", ORANGE);
-    Boton btnRvH(490, 400, 300, 60, "ROBOT vs HUMANO", LIME);
+    Boton btnHvH(490, 200, 300, 60, "JUGADOR VS JUGADOR", SKYBLUE);
+    Boton btnRvR(490, 300, 300, 60, "CPU VS CPU", ORANGE);
+    Boton btnRvH(490, 400, 300, 60, "JUGADOR VS CPU", LIME);
 
     // Común
     Boton btnVolver(50, 50, 150, 50, "VOLVER", RED);
-    Boton btnSalir(50, 50, 150, 50, "SALIR", RED); // Mismo botón pero con otro texto para el juego
+    Boton btnSalir(50, 50, 150, 50, "SALIR", RED);
 
     while (!WindowShouldClose()){
         
         Vector2 mousePoint = GetMousePosition();
         bool click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 
-        // ============================
-        //     LÓGICA (UPDATE)
-        // ============================
         switch(pantallaActual) {
             
             case MENU_PRINCIPAL:
@@ -127,15 +137,13 @@ void mainloop(void) {
                 break;
 
             case MENU_SELECCION_MODO:
-                // AL SELECCIONAR MODO
                 if (btnHvH.FueClickeado() || btnRvR.FueClickeado() || btnRvH.FueClickeado()) 
                 {
                     if (btnHvH.FueClickeado()) modoJuego = 1;
                     else if (btnRvR.FueClickeado()) modoJuego = 2;
                     else if (btnRvH.FueClickeado()) modoJuego = 3;
 
-                    // Reiniciar matriz
-                    for(int i=0; i<FILAS; i++) for(int j=0; j<COLUMNAS; j++) matrizVisual[i][j] = 0;
+                    matrizVisual.limpiarTablero();
                     pantallaActual = JUEGO_EN_MARCHA;
                 }
                 
@@ -150,8 +158,17 @@ void mainloop(void) {
                         mousePoint.y >= margenY && mousePoint.y < margenY + altoTableroPx) {
                         
                         int col = (int)(mousePoint.x - margenX) / TAMANO_CELDA;
-                        int fila = (int)(mousePoint.y - margenY) / TAMANO_CELDA;
-                        matrizVisual[fila][col] = 1; 
+                        
+                        if (col >= 0 && col < columnas) {
+                            if (modoJuego == 1){
+                                if (turno)
+                                    matrizVisual.insertarFicha(col,ficha1);
+                                else
+                                    matrizVisual.insertarFicha(col,ficha2);
+
+                                turno = !turno;
+                            }
+                        }
                     }
                 }
 
@@ -192,17 +209,12 @@ void mainloop(void) {
             case JUEGO_EN_MARCHA:
                 ClearBackground(BLACK); 
 
-                // Tablero
+                // Tablero Fondo
                 DrawRectangle(margenX - 10, margenY - 10, anchoTableroPx + 20, altoTableroPx + 20, BLUE);
-                for (int i = 0; i < FILAS; i++) {
-                    for (int j = 0; j < COLUMNAS; j++) {
-                        int cx = margenX + (j * TAMANO_CELDA) + (TAMANO_CELDA / 2);
-                        int cy = margenY + (i * TAMANO_CELDA) + (TAMANO_CELDA / 2);
-                        if (matrizVisual[i][j] == 0) DrawCircle(cx, cy, RADIO_FICHA, BLACK); 
-                        else DrawCircle(cx, cy, RADIO_FICHA, RED);   
-                    }
-                }
-
+                
+                // Círculos y Fichas
+                dibujarMatriz(matrizVisual, margenX, margenY);
+                
                 if (modoJuego == 1) DrawText("MODO: HUMANO vs HUMANO", 50, 50, 20, WHITE);
                 if (modoJuego == 2) DrawText("MODO: ROBOT vs ROBOT", 50, 50, 20, WHITE);
                 if (modoJuego == 3) DrawText("MODO: ROBOT vs HUMANO", 50, 50, 20, WHITE);
@@ -216,9 +228,18 @@ void mainloop(void) {
                 break;
         }
 
+        int estado = matrizVisual.comprobarVictoria();
+        if (estado == 1){
+            cout<<"Ganador: "<<j1.getNombre();
+            matrizVisual.limpiarTablero();
+        }
+        else if (estado == 2){
+            cout<<"Ganador: "<<j2.getNombre();
+            matrizVisual.limpiarTablero();
+        }
+
         EndDrawing();
     }
 
     CloseWindow();
- 
 }
