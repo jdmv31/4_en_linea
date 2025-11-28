@@ -55,6 +55,7 @@ public:
 typedef enum { 
     MENU_PRINCIPAL, 
     MENU_SELECCION_MODO,  
+    MENU_VARIANTE, 
     JUEGO_EN_MARCHA,      
     VENTANA_CONTINUAR    
 } Pantalla;
@@ -72,7 +73,7 @@ void dibujarMatriz(Tablero &tablero, int mX, int mY) {
             else if (val == 1)
                 DrawCircle(cx, cy, RADIO_FICHA, RED);
             else
-                DrawCircle(cx, cy, RADIO_FICHA, DARKPURPLE);   
+                DrawCircle(cx, cy, RADIO_FICHA, YELLOW);   
         }
     }
 }
@@ -81,13 +82,18 @@ void mainloop(void) {
     const int anchoPantalla = 1280; 
     const int altoPantalla = 720;
     
+    Image icon = LoadImage("presentacion/icono.ico");
+        
     InitWindow(anchoPantalla, altoPantalla, "4 en Linea");
     SetTargetFPS(60); 
 
     Color colorMorado = GetColor(0x4525A2FF);
+    Color colorTextoVictoria = YELLOW; 
 
     Pantalla pantallaActual = MENU_PRINCIPAL;
+    
     int modoJuego = 0;
+    int varianteJuego = 0;  // 1=Clásico (Primer 4), 2=Por Puntos (Tablero Lleno) <-- NUEVA VARIABLE
     bool turno = true; 
 
     std::string textoTurno = ""; 
@@ -110,14 +116,21 @@ void mainloop(void) {
     int margenX = (anchoPantalla - anchoTableroPx) / 2;
     int margenY = (altoPantalla - altoTableroPx) / 2 + 50;
 
+    //botones principales
     Boton btnIniciar(300, 300, 350, 80, "INICIAR PARTIDA", LIGHTGRAY);
     Boton btnContinuar(680, 300, 350, 80, "CONTINUAR", LIGHTGRAY);
+    //botones de modo de juego
     Boton btnHvH(490, 200, 300, 60, "JUGADOR VS JUGADOR", SKYBLUE);
     Boton btnRvR(490, 300, 300, 60, "JUGADOR VS BOT", ORANGE);
     Boton btnRvH(490, 400, 300, 60, "BOT VS BOT", LIME);
+    //botones de modalidad del juego
+    Boton btnVarClasico(440, 250, 400, 60, "CLASICO (GANAR CON 4)", GOLD);
+    Boton btnVarPuntos(440, 350, 400, 60, "POR PUNTOS (LLENAR TABLERO)", PINK);
+    //botones comunes
     Boton btnVolver(50, 50, 150, 50, "VOLVER", RED);
     Boton btnSalir(50, 50, 150, 50, "SALIR", RED);
     Boton btnReiniciar(anchoPantalla / 2 - 100, altoPantalla / 2 + 50, 200, 60, "REINICIAR", GOLD);
+    Boton btnGuardar(anchoPantalla - 250, 50, 230, 50, "GUARDAR PARTIDA", ORANGE);
 
     while (!WindowShouldClose()){
         
@@ -142,13 +155,39 @@ void mainloop(void) {
                     turno = true; 
                     juegoTerminado = false;
                     ganadorID = 0;
-                    pantallaActual = JUEGO_EN_MARCHA;
+                    pantallaActual = MENU_VARIANTE;
                 }
                 if (btnVolver.FueClickeado()) pantallaActual = MENU_PRINCIPAL;
                 break;
 
+            case MENU_VARIANTE: 
+                // modalidad del juego
+                if (btnVarClasico.FueClickeado() || btnVarPuntos.FueClickeado()) {
+                    
+                    if (btnVarClasico.FueClickeado()) varianteJuego = 1;
+                    else varianteJuego = 2;
+
+                    // Reinicio de partida
+                    matrizVisual.limpiarTablero(); 
+                    turno = true; 
+                    juegoTerminado = false;
+                    ganadorID = 0;
+                    tiempoEsperaCpu = 0;
+                    
+                    pantallaActual = JUEGO_EN_MARCHA;
+                }
+
+                if (btnVolver.FueClickeado()) pantallaActual = MENU_SELECCION_MODO; // Volver atrás
+                break;
+
             case JUEGO_EN_MARCHA:
                 if (!juegoTerminado) {
+                    //LOGICA DEL BOTON GUARDAR yoshua
+                     if (btnGuardar.FueClickeado()) {
+                        // alo? backend aqui
+                        // Ejemplo: gestorArchivos.guardarPartida(matrizVisual, turno, modoJuego, varianteJuego);
+                        TraceLog(LOG_INFO, "Boton Guardar presionado"); // Mensaje en consola por ahora
+                    }
                     switch (modoJuego){
                         case 1:
                             if (turno) 
@@ -222,12 +261,17 @@ void mainloop(void) {
                             }                    
                         break;
                     }
-                    
+                     // Nota: Aquí deberás implementar tu lógica backend de "varianteJuego"
+                     //varianteJuego es la modalidad del juego yoshua
+                
                     int estado = matrizVisual.comprobarVictoria();
                     if (estado == 1 || estado == 2) {
                         juegoTerminado = true;
                         ganadorID = estado;
                         
+                        if (estado == 1) colorTextoVictoria = RED;
+                        else colorTextoVictoria = YELLOW;
+
                         if (modoJuego == 1) {
                             textoVictoria = (estado == 1) ? "GANADOR: " + j1.getNombre() : "GANADOR: " + j2.getNombre();
                         } else if (modoJuego == 2) {
@@ -279,29 +323,42 @@ void mainloop(void) {
                 btnRvH.Dibujar();
                 btnVolver.Dibujar();
                 break;
+                
+            case MENU_VARIANTE: // nueva pantalla
+                DrawText("SELECCIONA MODALIDAD DE JUEGO", 420, 150, 40, WHITE);
+                btnVarClasico.Dibujar();
+                btnVarPuntos.Dibujar();
+                btnVolver.Dibujar();
+                break;
 
             case JUEGO_EN_MARCHA:
-                ClearBackground(BLACK); 
+                ClearBackground(colorMorado);
                 DrawRectangle(margenX - 10, margenY - 10, anchoTableroPx + 20, altoTableroPx + 20, BLUE);
                 
                 dibujarMatriz(matrizVisual, margenX, margenY);
+
                 
-                if (modoJuego == 1) DrawText("MODO: HUMANO vs HUMANO", 50, 50, 20, WHITE);
-                if (modoJuego == 2) DrawText("MODO: JUGADOR vs BOT", 50, 50, 20, WHITE);
-                if (modoJuego == 3) DrawText("MODO: BOT vs BOT", 50, 50, 20, WHITE);
+                if (modoJuego == 1) DrawText("MODO: HUMANO vs HUMANO", 500, 50, 20, WHITE);
+                if (modoJuego == 2) DrawText("MODO: JUGADOR vs BOT", 500, 50, 20, WHITE);
+                if (modoJuego == 3) DrawText("MODO: BOT vs BOT", 500, 50, 20, WHITE);
+
+                // Texto de Variante/modalidad juego
+                if (varianteJuego == 1) DrawText("(CLASICO)", 500, 75, 20, YELLOW);
+                if (varianteJuego == 2) DrawText("(POR PUNTOS)", 500, 75, 20, PINK);
 
                 if (!juegoTerminado) {
                     if (turno)
-                        DrawText(textoTurno.c_str(), 50, 100, 20, RED);              
+                        DrawText(textoTurno.c_str(), 500, 100, 20, RED);              
                     else 
-                        DrawText(textoTurno.c_str(), 50, 100, 20, VIOLET);
+                        DrawText(textoTurno.c_str(), 500, 100, 20, YELLOW);
                     
                     btnSalir.Dibujar();
+                    btnGuardar.Dibujar();
                 } else {
                     DrawRectangle(0, 0, anchoPantalla, altoPantalla, Fade(BLACK, 0.7f));
                     
                     int textWidth = MeasureText(textoVictoria.c_str(), 40);
-                    DrawText(textoVictoria.c_str(), (anchoPantalla - textWidth) / 2, altoPantalla / 2 - 50, 40, YELLOW);
+                     DrawText(textoVictoria.c_str(), (anchoPantalla - textWidth) / 2, altoPantalla / 2 - 50, 40, colorTextoVictoria);
                     
                     btnReiniciar.Dibujar();
                     btnSalir.Dibujar();
@@ -316,6 +373,6 @@ void mainloop(void) {
 
         EndDrawing();
     }
-
+    
     CloseWindow();
 }

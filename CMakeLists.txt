@@ -25,6 +25,7 @@ target_include_directories(CapaDatos PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(CapaInterfaz PUBLIC CapaNegocios raylib)
 
-add_executable(4enLinea main.cpp)
+
+add_executable(4enLinea main.cpp recursos.rc)
 
 target_link_libraries(4enLinea PRIVATE CapaInterfaz)
