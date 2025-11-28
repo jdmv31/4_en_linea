@@ -13,7 +13,8 @@ class Tablero{
         int getValor (int pX,int pY);
         void deshacerJugada(int c);
         bool hayFicha(int pX, int pY);
-        bool estadoTablero(int param);
+        bool tableroVacio();
+        bool tableroLleno();
         int comprobarVictoria(void);
         bool columnaLibre(int c);
         void limpiarTablero(void);

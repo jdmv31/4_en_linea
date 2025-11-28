@@ -130,7 +130,7 @@ int Cpu::evaluarVentana(vector<int> ventana) {
 bool Cpu::esNodoTerminal(Tablero& tablero) {
     // Debe devolver true si el tablero está lleno O si alguien ya ganó (1 o 2)
     // Asumo que tu clase Tablero tiene comprobarVictoria(), si no, úsalo del código anterior.
-    return tablero.estadoTablero(1) || tablero.comprobarVictoria() != 0;
+    return tablero.tableroLleno() || tablero.comprobarVictoria() != 0;
 }
 
 int Cpu::determinarJugada(Tablero& tablero) {

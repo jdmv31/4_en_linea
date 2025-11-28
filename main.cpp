@@ -3,7 +3,9 @@
 #include "presentacion/Interfaz.h"
 
 int main(){
-    mainloop();
+    Interfaz interfaz;
+    interfaz.mainloop();
 
+    
     return 0;
 }
