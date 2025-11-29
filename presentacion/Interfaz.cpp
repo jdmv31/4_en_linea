@@ -20,7 +20,7 @@ void Interfaz::dibujarMatriz(Tablero &tablero, int mX, int mY) {
             
             int val = this->matrizVisual.getValor(i,j);     
             if (val == 0) 
-                DrawCircle(cx, cy, RADIO_FICHA, BLACK); 
+                DrawCircle(cx, cy, RADIO_FICHA, LIGHTGRAY); 
             else if (val == 1)
                 DrawCircle(cx, cy, RADIO_FICHA, RED);
             else
@@ -101,17 +101,22 @@ void Interfaz::mainloop(void) {
 
     std::vector <std::string> lista = archivos.obtenerPartidasGuardadas();
 
-    Boton btnIniciar(300, 300, 350, 80, "INICIAR PARTIDA", LIGHTGRAY);
-    Boton btnContinuar(680, 300, 350, 80, "CONTINUAR", LIGHTGRAY);
-    Boton btnHvH(490, 200, 300, 60, "JUGADOR VS JUGADOR", SKYBLUE);
-    Boton btnRvR(490, 300, 300, 60, "JUGADOR VS BOT", ORANGE);
-    Boton btnRvH(490, 400, 300, 60, "BOT VS BOT", LIME);
-    Boton btnVarClasico(440, 250, 400, 60, "CLASICO (GANAR CON 4)", GOLD);
-    Boton btnVarPuntos(440, 350, 400, 60, "POR PUNTOS (LLENAR TABLERO)", PINK);
+    Boton btnIniciar(490, 250, 300, 80, "INICIAR PARTIDA", GOLD);
+    Boton btnContinuar(490, 350, 300, 80, "CONTINUAR", GOLD);
+    Boton btnCerrar(490, 450, 300, 80, "Cerrar", RED);
+
+    Boton btnHvH(490, 250, 300, 80, "JUGADOR VS JUGADOR", ORANGE);
+    Boton btnRvR(490, 350, 300, 80, "JUGADOR VS BOT", ORANGE);
+    Boton btnRvH(490, 450, 300, 80, "BOT VS BOT", ORANGE);
+
+    Boton btnVarClasico(470, 250, 380, 80, "CLASICO (GANAR CON 4)", PINK);
+    Boton btnVarPuntos(470, 350, 380, 80, "POR PUNTOS (LLENAR TABLERO)", PINK);
+
     Boton btnVolver(50, 50, 150, 50, "VOLVER", RED);
     Boton btnSalir(50, 50, 150, 50, "SALIR", RED);
     Boton btnReiniciar((float)(anchoPantalla / 2 - 100), (float)(altoPantalla / 2 + 50), 200, 60, "REINICIAR", GOLD);
-    Boton btnGuardar((float)(anchoPantalla - 250), 50, 230, 50, "GUARDAR PARTIDA", ORANGE); 
+    Boton btnGuardar((float)(anchoPantalla - 250), 50, 230, 50, "GUARDAR PARTIDA", LIME); 
+    
 
     while (!WindowShouldClose()){
         
@@ -137,6 +142,10 @@ void Interfaz::mainloop(void) {
                             pantallaActual = VENTANA_CONTINUAR;
                         }
                     }
+                    if (btnCerrar.FueClickeado()){
+                        std::exit(0);
+                    }
+
                 }
                 break;
 
@@ -351,9 +360,10 @@ void Interfaz::mainloop(void) {
         
         switch(pantallaActual) {
             case MENU_PRINCIPAL:
-                DrawText("4 EN LINEA - MENU", 480, 100, 40, WHITE);
+                DrawText("4 EN LINEA - MENU", 440, 160, 40, WHITE);
                 btnIniciar.Dibujar();
                 btnContinuar.Dibujar();
+                btnCerrar.Dibujar();
                 
                 if (error)
                     if (mostrarError(mensaje1, mensaje2))
@@ -361,7 +371,7 @@ void Interfaz::mainloop(void) {
                 break;
 
             case MENU_SELECCION_MODO:
-                DrawText("SELECCIONA MODO DE JUEGO", 380, 100, 40, WHITE);
+                DrawText("SELECCIONA MODO DE JUEGO", 350, 160, 40, WHITE);
                 btnHvH.Dibujar();
                 btnRvR.Dibujar();
                 btnRvH.Dibujar();
@@ -369,7 +379,7 @@ void Interfaz::mainloop(void) {
                 break;
                 
             case MENU_VARIANTE: 
-                DrawText("SELECCIONA MODALIDAD DE JUEGO", 420, 150, 40, WHITE);
+                DrawText("SELECCIONA MODALIDAD DE JUEGO", 290, 160, 40, WHITE);
                 btnVarClasico.Dibujar();
                 btnVarPuntos.Dibujar();
                 btnVolver.Dibujar();
@@ -417,7 +427,7 @@ void Interfaz::mainloop(void) {
                 break;
 
             case VENTANA_CONTINUAR:
-                DrawText("SELECCIONA UNA PARTIDA", 400, 80, 30, WHITE);
+                DrawText("SELECCIONA UNA PARTIDA", 360, 80, 40, WHITE);
                 btnVolver.Dibujar();
 
                 BeginScissorMode(0, 120, 1280, 500); 
@@ -426,14 +436,22 @@ void Interfaz::mainloop(void) {
                     float posY = 150.0f + (i * 70.0f) - scrollY; 
                     
                     if (posY > 100 && posY < 650) {
-                        Boton btnPartida(440.0f, posY, 400.0f, 60.0f, lista[i].c_str(), SKYBLUE);
-                        btnPartida.Dibujar();
-                        
-                        if (btnPartida.FueClickeado()){
-                            std::string nombre = lista[i];
-                            archivos.leerTablero(matrizVisual, nombre, turno, modoJuego, varianteJuego);
-                            pantallaActual = JUEGO_EN_MARCHA;
-                            break; 
+                        std::string textoParaBoton = lista[i]; 
+                        size_t extension = textoParaBoton.find(".bin"); 
+                        if (extension != std::string::npos) {
+                        textoParaBoton = textoParaBoton.substr(0, extension); 
+                    }
+
+        
+                    Boton btnPartida(440.0f, posY, 400.0f, 60.0f, textoParaBoton.c_str(), SKYBLUE);
+                     btnPartida.Dibujar();
+        
+        
+                     if (btnPartida.FueClickeado()){
+                        std::string nombreReal = lista[i]; 
+                        archivos.leerTablero(matrizVisual, nombreReal, turno, modoJuego, varianteJuego);
+                        pantallaActual = JUEGO_EN_MARCHA;
+                        break; 
                         }
                     }
                 }
@@ -445,7 +463,7 @@ void Interfaz::mainloop(void) {
                     float porcentaje = scrollY / (lista.size() * 70.0f - 450.0f);
                     DrawRectangle(1260, 120 + (int)(porcentaje * 450), 10, 50, WHITE); 
                 }
-            break;
+                break;
         }
 
         EndDrawing();
