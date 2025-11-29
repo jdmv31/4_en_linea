@@ -34,18 +34,18 @@ void Interfaz::dibujarMatriz(Tablero &tablero, int mX, int mY) {
 bool Interfaz::mostrarError(const char* titulo, const char* mensaje) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.6f));
 
-    int ancho = 400;
+    int ancho = 500;
     int alto = 200;
     int x = (GetScreenWidth() - ancho) / 2;
     int y = (GetScreenHeight() - alto) / 2;
 
     DrawRectangle(x, y, ancho, alto, RAYWHITE);
-    DrawRectangleLinesEx({(float)x, (float)y, (float)ancho, (float)alto}, 3, RED);
+    DrawRectangleLinesEx({(float)x, (float)y, (float)ancho, (float)alto}, 3, BLUE);
 
     DrawText(titulo, x + 20, y + 20, 25, RED);
-    DrawText(mensaje, x + 20, y + 80, 20, DARKGRAY);
+    DrawText(mensaje, x + 20, y + 80, 20, BLACK);
 
-    Boton btnCerrar((float)(x + 100), (float)(y + 130), 200, 50, "OK", LIGHTGRAY);
+    Boton btnCerrar((float)(x + 150), (float)(y + 130), 200, 50, "OK", RED);
     btnCerrar.Dibujar();
 
     return btnCerrar.FueClickeado();
@@ -139,7 +139,7 @@ void Interfaz::mainloop(void) {
                         if (lista.empty()) {
                             error = true;
                             mensaje1 = "NO HAY PARTIDAS GUARDADAS";
-                            mensaje2 = "Debe registrar al menos una partida para continuarla.";
+                            mensaje2 = "Debe registrar al menos una partida.";
                         } else {
                             pantallaActual = VENTANA_CONTINUAR;
                         }
@@ -219,7 +219,7 @@ void Interfaz::mainloop(void) {
 
                             error = true;
                             mensaje1 = "PARTIDA GUARDADA";
-                            mensaje2 = "Tu progreso ha sido almacenado correctamente.";
+                            mensaje2 = "Partida almacenada correctamente.";
                             
                             pantallaActual = MENU_PRINCIPAL; 
                         }
