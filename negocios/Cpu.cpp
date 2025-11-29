@@ -136,6 +136,22 @@ bool Cpu::esNodoTerminal(Tablero& tablero) {
 int Cpu::determinarJugada(Tablero& tablero) {
     int mejorPuntaje = -100000000;
     int mejorColumna = -1;
+    int fichasEnTablero = 0;
+    for(int i = 0; i < filas; i++) {
+        for(int j = 0; j < columnas; j++) {
+            if(tablero.getValor(i, j) != 0) 
+                fichasEnTablero++;
+        }
+    }
+
+    if (fichasEnTablero < 1) { 
+        int columnaRandom;
+        do {
+            columnaRandom = rand() % 7;
+        } while (!tablero.columnaLibre(columnaRandom));
+        
+        return columnaRandom;
+    }
     
     vector<int> prioridadColumnas = {3, 2, 4, 1, 5, 0, 6};
     // va a priorizar las columnas que estan al centro del tablero dejando de lado los q estan a los bordes6

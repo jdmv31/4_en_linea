@@ -1,12 +1,13 @@
 #include "Interfaz.h"
-#include <raylib.h>
 #include "negocios/LogicaTablero.h"
 #include "negocios/LogicaFicha.h"
 #include "negocios/Jugador.h"
 #include "negocios/Cpu.h"
 #include "datos/LogicaFicheros.h"
-#include <string>
 #include "Boton.h"
+#include <raylib.h>
+#include <vector>
+#include <string>
 
 #define TAMANO_CELDA 80
 #define RADIO_FICHA 35
@@ -40,9 +41,9 @@ bool Interfaz::mostrarError(const char* titulo, const char* mensaje) {
     DrawRectangleLinesEx({(float)x, (float)y, (float)ancho, (float)alto}, 3, RED);
 
     DrawText(titulo, x + 20, y + 20, 25, RED);
-    DrawText(mensaje, x + 20, y + 60, 20, DARKGRAY);
+    DrawText(mensaje, x + 20, y + 80, 20, DARKGRAY);
 
-    Boton btnCerrar(x + 100, y + 130, 200, 50, "OK", LIGHTGRAY);
+    Boton btnCerrar((float)(x + 100), (float)(y + 130), 200, 50, "OK", LIGHTGRAY);
     btnCerrar.Dibujar();
 
     return btnCerrar.FueClickeado();
@@ -62,7 +63,7 @@ void Interfaz::mainloop(void) {
     Color colorTextoVictoria = YELLOW; 
 
     Pantalla pantallaActual = MENU_PRINCIPAL;
-    
+
     int modoJuego = 0;
     int varianteJuego = 0; 
     bool turno = true; 
@@ -70,11 +71,17 @@ void Interfaz::mainloop(void) {
     std::string textoTurno = ""; 
     std::string textoVictoria = "";
 
+    const char* mensaje1 = "";
+    const char* mensaje2 = "";
+
     float tiempoEsperaCpu = 0.0f; 
     bool juegoTerminado = false;
     int ganadorID = 0;
 
-    bool error = false; 
+    bool error = false;
+    bool piezaColocada = false; 
+    
+    float scrollY = 0.0f;
 
     Ficha ficha1; ficha1.setColor(true);
     Ficha ficha2; ficha2.setColor(false);
@@ -88,6 +95,11 @@ void Interfaz::mainloop(void) {
     int altoTableroPx = filas * TAMANO_CELDA;
     int margenX = (anchoPantalla - anchoTableroPx) / 2;
     int margenY = (altoPantalla - altoTableroPx) / 2 + 50;
+    
+    int contPartidas = archivos.obtenerPartidas();
+    archivos.setContador(contPartidas);
+
+    std::vector <std::string> lista = archivos.obtenerPartidasGuardadas();
 
     Boton btnIniciar(300, 300, 350, 80, "INICIAR PARTIDA", LIGHTGRAY);
     Boton btnContinuar(680, 300, 350, 80, "CONTINUAR", LIGHTGRAY);
@@ -98,19 +110,34 @@ void Interfaz::mainloop(void) {
     Boton btnVarPuntos(440, 350, 400, 60, "POR PUNTOS (LLENAR TABLERO)", PINK);
     Boton btnVolver(50, 50, 150, 50, "VOLVER", RED);
     Boton btnSalir(50, 50, 150, 50, "SALIR", RED);
-    Boton btnReiniciar(anchoPantalla / 2 - 100, altoPantalla / 2 + 50, 200, 60, "REINICIAR", GOLD);
-    Boton btnGuardar(anchoPantalla - 250, 50, 230, 50, "GUARDAR PARTIDA", ORANGE);
+    Boton btnReiniciar((float)(anchoPantalla / 2 - 100), (float)(altoPantalla / 2 + 50), 200, 60, "REINICIAR", GOLD);
+    Boton btnGuardar((float)(anchoPantalla - 250), 50, 230, 50, "GUARDAR PARTIDA", ORANGE); 
 
     while (!WindowShouldClose()){
         
         Vector2 mousePoint = GetMousePosition();
         bool click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+        float rueda = GetMouseWheelMove();
 
         switch(pantallaActual) {
             
             case MENU_PRINCIPAL:
-                if (btnIniciar.FueClickeado()) pantallaActual = MENU_SELECCION_MODO;
-                if (btnContinuar.FueClickeado()) pantallaActual = VENTANA_CONTINUAR;
+                if (!error) {
+                    if (btnIniciar.FueClickeado()) 
+                        pantallaActual = MENU_SELECCION_MODO;
+                    
+                    if (btnContinuar.FueClickeado()) {
+                        lista = archivos.obtenerPartidasGuardadas();
+                        
+                        if (lista.empty()) {
+                            error = true;
+                            mensaje1 = "NO HAY PARTIDAS GUARDADAS";
+                            mensaje2 = "Debe registrar al menos una partida para continuarla.";
+                        } else {
+                            pantallaActual = VENTANA_CONTINUAR;
+                        }
+                    }
+                }
                 break;
 
             case MENU_SELECCION_MODO:
@@ -152,23 +179,47 @@ void Interfaz::mainloop(void) {
             case JUEGO_EN_MARCHA:
                 if (!juegoTerminado && !error) {
                     if (btnGuardar.FueClickeado()) {
-                        if (matrizVisual.tableroVacio()) 
+                        if (matrizVisual.tableroVacio()){
                             error = true;
-                        else
-                            archivos.guardarTablero(matrizVisual, 1, "Partida_");
+                            mensaje1 = "ERROR DE GUARDADO";
+                            mensaje2 = "No puedes guardar un tablero vacio.";
+                        } 
+                        else if (piezaColocada){
+                            archivos.registrarPartida();
+                            contPartidas += 1;
+                            archivos.setContador(contPartidas);
+                            archivos.guardarTablero(matrizVisual,contPartidas,"Partida ",turno,modoJuego,varianteJuego);
+
+                            error = true;
+                            mensaje1 = "PARTIDA GUARDADA";
+                            mensaje2 = "Tu progreso ha sido almacenado correctamente.";
+                            
+                            pantallaActual = MENU_PRINCIPAL; 
+                        }
+                        else{
+                            error = true;
+                            mensaje1 = "SIN MOVIMIENTOS";
+                            mensaje2 = "No puedes guardar un tablero duplicado.";
+                        }
                     }  
                     switch (modoJuego){
                         case 1:
-                            if (turno) textoTurno = "TURNO DE: " + j1.getNombre();
-                            else       textoTurno = "TURNO DE: " + j2.getNombre();
+                            if (turno) 
+                                textoTurno = "TURNO DE: " + j1.getNombre();
+                            else       
+                                textoTurno = "TURNO DE: " + j2.getNombre();
                         break;
                         case 2:
-                            if (turno) textoTurno = "TURNO DE: " + j1.getNombre();
-                            else       textoTurno = "TURNO DE: " + bot1.getNombre();
+                            if (turno) 
+                                textoTurno = "TURNO DE: " + j1.getNombre();
+                            else       
+                                textoTurno = "TURNO DE: " + bot1.getNombre();
                         break;
                         case 3:
-                            if (turno) textoTurno = "TURNO DE: " + bot2.getNombre();
-                            else       textoTurno = "TURNO DE: " + bot1.getNombre();
+                            if (turno) 
+                                textoTurno = "TURNO DE: " + bot2.getNombre();
+                            else       
+                                textoTurno = "TURNO DE: " + bot1.getNombre();
                         break;
                     }
 
@@ -179,9 +230,12 @@ void Interfaz::mainloop(void) {
                                     mousePoint.y >= margenY && mousePoint.y < margenY + altoTableroPx) {
                                     int col = (int)(mousePoint.x - margenX) / TAMANO_CELDA;
                                     if (col >= 0 && col < columnas) {
-                                        if (turno) matrizVisual.insertarFicha(col, ficha1);
-                                        else       matrizVisual.insertarFicha(col, ficha2);
+                                        if (turno) 
+                                            matrizVisual.insertarFicha(col, ficha1);
+                                        else       
+                                            matrizVisual.insertarFicha(col, ficha2);
                                         turno = !turno;
+                                        piezaColocada = true;
                                     }
                                 }
                             }
@@ -197,6 +251,7 @@ void Interfaz::mainloop(void) {
                                             matrizVisual.insertarFicha(col, ficha1);
                                             turno = !turno; 
                                             tiempoEsperaCpu = 0;
+                                            piezaColocada = true;
                                         }
                                     }
                                 }
@@ -206,6 +261,7 @@ void Interfaz::mainloop(void) {
                                     int col = bot1.determinarJugada(matrizVisual);
                                     matrizVisual.insertarFicha(col, ficha2);
                                     turno = !turno;
+                                    piezaColocada = true;
                                 }
                             }                    
                         break;
@@ -223,6 +279,7 @@ void Interfaz::mainloop(void) {
                                 }
                                 turno = !turno;
                                 tiempoEsperaCpu = 0;
+                                piezaColocada = true;
                             }                    
                         break;
                     }
@@ -232,8 +289,10 @@ void Interfaz::mainloop(void) {
                         juegoTerminado = true;
                         ganadorID = estado;
                         
-                        if (estado == 1) colorTextoVictoria = RED;
-                        else colorTextoVictoria = YELLOW;
+                        if (estado == 1) 
+                            colorTextoVictoria = RED;
+                        else 
+                            colorTextoVictoria = YELLOW;
 
                         if (modoJuego == 1) {
                             textoVictoria = (estado == 1) ? "GANADOR: " + j1.getNombre() : "GANADOR: " + j2.getNombre();
@@ -268,7 +327,22 @@ void Interfaz::mainloop(void) {
                 break;
 
             case VENTANA_CONTINUAR:
-                if (btnVolver.FueClickeado()) pantallaActual = MENU_PRINCIPAL;
+                if (btnVolver.FueClickeado()) {
+                    pantallaActual = MENU_PRINCIPAL;
+                    scrollY = 0.0f;
+                }
+                
+                float alturaContenido = lista.size() * 70.0f;
+                float alturaVisible = 450.0f;
+
+                if (alturaContenido > alturaVisible) {
+                    scrollY -= rueda * 20.0f;
+                    if (scrollY < 0) scrollY = 0;
+                    if (scrollY > alturaContenido - alturaVisible) 
+                        scrollY = alturaContenido - alturaVisible;
+                } else {
+                    scrollY = 0;
+                }
                 break;
         }
 
@@ -280,6 +354,10 @@ void Interfaz::mainloop(void) {
                 DrawText("4 EN LINEA - MENU", 480, 100, 40, WHITE);
                 btnIniciar.Dibujar();
                 btnContinuar.Dibujar();
+                
+                if (error)
+                    if (mostrarError(mensaje1, mensaje2))
+                        error = false;
                 break;
 
             case MENU_SELECCION_MODO:
@@ -303,12 +381,17 @@ void Interfaz::mainloop(void) {
                 
                 dibujarMatriz(matrizVisual, margenX, margenY);
 
-                if (modoJuego == 1) DrawText("MODO: HUMANO vs HUMANO", 500, 50, 20, WHITE);
-                if (modoJuego == 2) DrawText("MODO: JUGADOR vs BOT", 500, 50, 20, WHITE);
-                if (modoJuego == 3) DrawText("MODO: BOT vs BOT", 500, 50, 20, WHITE);
+                if (modoJuego == 1) 
+                    DrawText("MODO: HUMANO vs HUMANO", 500, 50, 20, WHITE);
+                if (modoJuego == 2) 
+                    DrawText("MODO: JUGADOR vs BOT", 500, 50, 20, WHITE);
+                if (modoJuego == 3) 
+                    DrawText("MODO: BOT vs BOT", 500, 50, 20, WHITE);
 
-                if (varianteJuego == 1) DrawText("(CLASICO)", 500, 75, 20, YELLOW);
-                if (varianteJuego == 2) DrawText("(POR PUNTOS)", 500, 75, 20, PINK);
+                if (varianteJuego == 1) 
+                    DrawText("(CLASICO)", 500, 75, 20, YELLOW);
+                if (varianteJuego == 2) 
+                    DrawText("(POR PUNTOS)", 500, 75, 20, PINK);
 
                 if (!juegoTerminado) {
                     if (turno)
@@ -319,7 +402,7 @@ void Interfaz::mainloop(void) {
                     btnSalir.Dibujar();
                     btnGuardar.Dibujar();
                     if (error)
-                        if (mostrarError("ERROR DE GUARDADO", "No puedes guardar un tablero vacio."))
+                        if (mostrarError(mensaje1,mensaje2))
                             error = false;
 
                 } else {
@@ -334,8 +417,34 @@ void Interfaz::mainloop(void) {
                 break;
 
             case VENTANA_CONTINUAR:
-                DrawText("CONTINUAR PARTIDA", 400, 300, 30, LIGHTGRAY);
+                DrawText("SELECCIONA UNA PARTIDA", 400, 80, 30, WHITE);
                 btnVolver.Dibujar();
+
+                BeginScissorMode(0, 120, 1280, 500); 
+
+                for (int i = 0; i < lista.size(); i++) {
+                    float posY = 150.0f + (i * 70.0f) - scrollY; 
+                    
+                    if (posY > 100 && posY < 650) {
+                        Boton btnPartida(440.0f, posY, 400.0f, 60.0f, lista[i].c_str(), SKYBLUE);
+                        btnPartida.Dibujar();
+                        
+                        if (btnPartida.FueClickeado()){
+                            std::string nombre = lista[i];
+                            archivos.leerTablero(matrizVisual, nombre, turno, modoJuego, varianteJuego);
+                            pantallaActual = JUEGO_EN_MARCHA;
+                            break; 
+                        }
+                    }
+                }
+
+                EndScissorMode();
+
+                if (lista.size() * 70.0f > 450.0f) {
+                    DrawRectangle(1260, 120, 10, 500, Fade(BLACK, 0.3f));
+                    float porcentaje = scrollY / (lista.size() * 70.0f - 450.0f);
+                    DrawRectangle(1260, 120 + (int)(porcentaje * 450), 10, 50, WHITE); 
+                }
             break;
         }
 

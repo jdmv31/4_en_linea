@@ -1,6 +1,7 @@
 #pragma once
 #include "negocios/LogicaTablero.h"
 #include <string>
+#include <vector>
 
 #ifndef RUTA_DATOS
 #define RUTA_DATOS "./"
@@ -16,8 +17,10 @@ class GestorFicheros{
     public:
         GestorFicheros();
         int getContador ();
-        void guardarTablero(Tablero &tablero, int contador, std::string nombre);
-        void leerTablero (Tablero &tablero,std::string nombre);
+        void setContador (int cont);
+        void guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad);
+        void leerTablero (Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad);
         void registrarPartida();
         int obtenerPartidas();
+        std::vector<std::string> obtenerPartidasGuardadas();
 };
