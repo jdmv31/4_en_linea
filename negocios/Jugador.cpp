@@ -25,3 +25,7 @@ void Jugador::setNombre(std::string n){
 std::string Jugador::getNombre(void){
     return nombreJugador;
 }
+
+void Jugador::setVictorias(int num){
+    victoriasJugador = num;
+}

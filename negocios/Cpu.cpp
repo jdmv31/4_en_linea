@@ -154,7 +154,7 @@ int Cpu::determinarJugada(Tablero& tablero) {
     }
     
     vector<int> prioridadColumnas = {3, 2, 4, 1, 5, 0, 6};
-    // va a priorizar las columnas que estan al centro del tablero dejando de lado los q estan a los bordes6
+    // josue: va a priorizar las columnas que estan al centro del tablero dejando de lado los q estan a los bordes6
 
     for (int col : prioridadColumnas) {
         if (tablero.columnaLibre(col)) {
@@ -171,9 +171,11 @@ int Cpu::determinarJugada(Tablero& tablero) {
             }
         }
     }
-    // Si no encuentra nada (raro), devuelve una válida cualquiera
+
     if (mejorColumna == -1) {
-        for(int i=0; i<7; i++) if(tablero.columnaLibre(i)) return i;
+        for(int i=0; i<7; i++) 
+            if(tablero.columnaLibre(i)) 
+                return i;
     }
     return mejorColumna;
 }

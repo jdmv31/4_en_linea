@@ -125,3 +125,9 @@ void Tablero::limpiarTablero(void){
         }
     }
 }
+
+void Tablero::setValor(int pX, int pY, int valor) {
+    if (pX >= 0 && pX < filas && pY >= 0 && pY < columnas) {
+        tablero[pX][pY] = valor;
+    }
+}

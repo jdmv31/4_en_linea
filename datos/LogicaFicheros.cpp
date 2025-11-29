@@ -20,7 +20,7 @@ void GestorFicheros::setContador (int cont){
 }
 
 // se debe pasar como parametro Partida en el nombre
-void GestorFicheros::guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad){
+void GestorFicheros::guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad,int vic1, int vic2){
     nombre += std::to_string(contador);
     fs::path rutaBase(RUTA_DATOS); 
     /*
@@ -40,12 +40,14 @@ void GestorFicheros::guardarTablero(Tablero &tablero, int contador, std::string 
         archivo.write(reinterpret_cast<char*>(&turno),sizeof(bool));
         archivo.write(reinterpret_cast<char*>(&modoJuego),sizeof(int));
         archivo.write(reinterpret_cast<char*>(&modalidad),sizeof(int));
+        archivo.write(reinterpret_cast<char*>(&vic1),sizeof(int));
+        archivo.write(reinterpret_cast<char*>(&vic2),sizeof(int));
         archivo.write(reinterpret_cast<char*>(&tablero), sizeof(Tablero));
         archivo.close();
     }
 }
 
-void GestorFicheros::leerTablero(Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad){
+void GestorFicheros::leerTablero(Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad,int &vic1, int &vic2){
     fs::path rutaBase (RUTA_DATOS);
     fs::path ruta = rutaBase/ "partidasGuardadas" / nombre;
     std::ifstream archivo (ruta,std::ios::in | std::ios::binary);
@@ -54,6 +56,8 @@ void GestorFicheros::leerTablero(Tablero &tablero,std::string nombre,bool &turno
         archivo.read(reinterpret_cast<char*>(&turno),sizeof(bool));
         archivo.read(reinterpret_cast<char*>(&modoJuego),sizeof(int));
         archivo.read(reinterpret_cast<char*>(&modalidad),sizeof(int));
+        archivo.read(reinterpret_cast<char*>(&vic1),sizeof(int));
+        archivo.read(reinterpret_cast<char*>(&vic2),sizeof(int));
         archivo.read(reinterpret_cast<char*>(&tablero), sizeof(Tablero));
         archivo.close();
     }

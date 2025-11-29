@@ -18,8 +18,8 @@ class GestorFicheros{
         GestorFicheros();
         int getContador ();
         void setContador (int cont);
-        void guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad);
-        void leerTablero (Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad);
+        void guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad,int vic1, int vic2);
+        void leerTablero (Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad, int &vic1, int &vic2);
         void registrarPartida();
         int obtenerPartidas();
         std::vector<std::string> obtenerPartidasGuardadas();

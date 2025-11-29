@@ -1,6 +1,9 @@
 #pragma once
 #include "negocios/LogicaTablero.h"
 
+#define TAMANO_CELDA 80
+#define RADIO_FICHA 35
+
 typedef enum { 
     MENU_PRINCIPAL, 
     MENU_SELECCION_MODO,  

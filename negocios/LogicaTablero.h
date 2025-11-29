@@ -18,4 +18,5 @@ class Tablero{
         int comprobarVictoria(void);
         bool columnaLibre(int c);
         void limpiarTablero(void);
+        void setValor(int pX, int pY, int valor);    
 };

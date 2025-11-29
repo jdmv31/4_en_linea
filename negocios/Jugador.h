@@ -12,6 +12,7 @@ class Jugador{
         void incrementarVictorias(void);
         int getVictorias(void);
         void setNombre(std::string);
+        void setVictorias (int num);
         std::string getNombre(void);
         // el nombre servira para las impresiones en la interfaz sobre a quien le corresponde jugar
 };
