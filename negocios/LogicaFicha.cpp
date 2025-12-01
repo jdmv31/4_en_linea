@@ -8,10 +8,10 @@ void Ficha::setColor(bool turno){
     if (turno)
         fichaJugada = ROJO;
     else
-        fichaJugada = MORADO; 
+        fichaJugada = AMARILLO; 
 }
 
-int Ficha::getColor (){
+int Ficha::getColor (void){
     if (fichaJugada == ROJO)
         return 1;
     else

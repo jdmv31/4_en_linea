@@ -105,7 +105,7 @@ int Tablero::comprobarVictoria(void) {
                     return jugador;
             }
         }
-        // Diagonal \ (Corrección: c debe empezar en 3 para no salir del array)
+        // Diagonal invertida
         for (int r = 0; r < filas - 3; r++) {
             for (int c = 3; c < columnas; c++) {
                 if (tablero[r][c] == jugador && tablero[r+1][c-1] == jugador && 
@@ -114,7 +114,7 @@ int Tablero::comprobarVictoria(void) {
             }
         }
     }
-    return 0; // Nadie ha ganado aun
+    return 0;
 }
 
 

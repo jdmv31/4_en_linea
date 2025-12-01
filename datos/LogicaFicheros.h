@@ -15,12 +15,12 @@ class GestorFicheros{
         int contadorPartidas;
         std::string nombrePartida;
     public:
-        GestorFicheros();
-        int getContador ();
+        GestorFicheros(void);
+        int getContador (void);
         void setContador (int cont);
         void guardarTablero(Tablero &tablero, int contador, std::string nombre, bool turno, int modoJuego, int modalidad,int vic1, int vic2);
         void leerTablero (Tablero &tablero,std::string nombre,bool &turno,int &modoJuego, int &modalidad, int &vic1, int &vic2);
-        void registrarPartida();
-        int obtenerPartidas();
+        void registrarPartida(void);
+        int obtenerPartidas(void);
         std::vector<std::string> obtenerPartidasGuardadas();
 };

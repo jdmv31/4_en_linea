@@ -20,12 +20,11 @@ void Interfaz::dibujarMatriz(Tablero &tablero, int mX, int mY) {
             
             int val = this->matrizVisual.getValor(i,j);     
             
-            // Dibuja 0 como vacío, 1 y 3 como Rojo, 2 y 4 como Amarillo
             if (val == 0) 
                 DrawCircle(cx, cy, RADIO_FICHA, LIGHTGRAY); 
-            else if (val == 1 || val == 3) 
+            else if (val == 1) 
                 DrawCircle(cx, cy, RADIO_FICHA, RED);
-            else if (val == 2 || val == 4)
+            else if (val == 2)
                 DrawCircle(cx, cy, RADIO_FICHA, YELLOW);   
         }
     }
@@ -84,6 +83,7 @@ void Interfaz::mainloop(void) {
     bool piezaColocada = false; 
     
     float scrollY = 0.0f;
+    float tiempoTransicion = 0.0f; 
 
     Ficha ficha1; ficha1.setColor(true);
     Ficha ficha2; ficha2.setColor(false);
@@ -125,6 +125,8 @@ void Interfaz::mainloop(void) {
         Vector2 mousePoint = GetMousePosition();
         bool click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         float rueda = GetMouseWheelMove();
+        
+        if (tiempoTransicion > 0) tiempoTransicion -= GetFrameTime();
 
         switch(pantallaActual) {
             
@@ -139,9 +141,10 @@ void Interfaz::mainloop(void) {
                         if (lista.empty()) {
                             error = true;
                             mensaje1 = "NO HAY PARTIDAS GUARDADAS";
-                            mensaje2 = "Debe registrar al menos una partida.";
+                            mensaje2 = "Debe registrar al menos una partida para continuarla.";
                         } else {
                             pantallaActual = VENTANA_CONTINUAR;
+                            tiempoTransicion = 0.5f; 
                         }
                     }
                     if (btnCerrar.FueClickeado()){
@@ -219,7 +222,7 @@ void Interfaz::mainloop(void) {
 
                             error = true;
                             mensaje1 = "PARTIDA GUARDADA";
-                            mensaje2 = "Partida almacenada correctamente.";
+                            mensaje2 = "Tu progreso ha sido almacenado correctamente.";
                             
                             pantallaActual = MENU_PRINCIPAL; 
                         }
@@ -334,62 +337,57 @@ void Interfaz::mainloop(void) {
                             }
                         }
                         
-                        // Lógica de Variante 2: Sumar puntos y TACHAR fichas
-                        if (varianteJuego == 2) {
+                        else if (varianteJuego == 2) {
+                            int conteo1 = 0;
+                            int conteo2 = 0;
                             for (int r = 0; r < filas; r++) {
                                 for (int c = 0; c < columnas; c++) {
                                     int val = matrizVisual.getValor(r, c);
-                                    if (val != 1 && val != 2) continue; // Solo procesar fichas no tachadas
+                                    if (val == 0) continue;
 
-                                    // Horizontal
                                     if (c + 3 < columnas && 
                                         matrizVisual.getValor(r, c+1) == val && 
                                         matrizVisual.getValor(r, c+2) == val && 
                                         matrizVisual.getValor(r, c+3) == val) 
                                     {
-                                        if (modoJuego == 1) (val == 1 ? j1 : j2).incrementarVictorias();
-                                        else if (modoJuego == 2) (val == 1 ? j1 : bot1).incrementarVictorias();
-                                        else (val == 1 ? bot2 : bot1).incrementarVictorias();
-                                        // Tachar fichas (convertir a 3 o 4)
-                                        for(int k=0; k<4; k++) matrizVisual.setValor(r, c+k, val + 2);
+                                        if (val == 1) conteo1++; else conteo2++;
                                     }
 
-                                    // Vertical
                                     if (r + 3 < filas && 
                                         matrizVisual.getValor(r+1, c) == val && 
                                         matrizVisual.getValor(r+2, c) == val && 
                                         matrizVisual.getValor(r+3, c) == val) 
                                     {
-                                        if (modoJuego == 1) (val == 1 ? j1 : j2).incrementarVictorias();
-                                        else if (modoJuego == 2) (val == 1 ? j1 : bot1).incrementarVictorias();
-                                        else (val == 1 ? bot2 : bot1).incrementarVictorias();
-                                        for(int k=0; k<4; k++) matrizVisual.setValor(r+k, c, val + 2);
+                                        if (val == 1) conteo1++; else conteo2++;
                                     }
 
-                                    // Diagonal 1
                                     if (r + 3 < filas && c + 3 < columnas && 
                                         matrizVisual.getValor(r+1, c+1) == val && 
                                         matrizVisual.getValor(r+2, c+2) == val && 
                                         matrizVisual.getValor(r+3, c+3) == val) 
                                     {
-                                        if (modoJuego == 1) (val == 1 ? j1 : j2).incrementarVictorias();
-                                        else if (modoJuego == 2) (val == 1 ? j1 : bot1).incrementarVictorias();
-                                        else (val == 1 ? bot2 : bot1).incrementarVictorias();
-                                        for(int k=0; k<4; k++) matrizVisual.setValor(r+k, c+k, val + 2);
+                                        if (val == 1) conteo1++; else conteo2++;
                                     }
 
-                                    // Diagonal 2
                                     if (r + 3 < filas && c - 3 >= 0 && 
                                         matrizVisual.getValor(r+1, c-1) == val && 
                                         matrizVisual.getValor(r+2, c-2) == val && 
                                         matrizVisual.getValor(r+3, c-3) == val) 
                                     {
-                                        if (modoJuego == 1) (val == 1 ? j1 : j2).incrementarVictorias();
-                                        else if (modoJuego == 2) (val == 1 ? j1 : bot1).incrementarVictorias();
-                                        else (val == 1 ? bot2 : bot1).incrementarVictorias();
-                                        for(int k=0; k<4; k++) matrizVisual.setValor(r+k, c-k, val + 2);
+                                        if (val == 1) conteo1++; else conteo2++;
                                     }
                                 }
+                            }
+                            
+                            if (modoJuego == 1) {
+                                j1.setVictorias(conteo1);
+                                j2.setVictorias(conteo2);
+                            } else if (modoJuego == 2) {
+                                j1.setVictorias(conteo1);
+                                bot1.setVictorias(conteo2);
+                            } else {
+                                bot2.setVictorias(conteo1);
+                                bot1.setVictorias(conteo2);
                             }
                         }
 
@@ -603,10 +601,11 @@ void Interfaz::mainloop(void) {
                     Boton btnPartida(440.0f, posY, 400.0f, 60.0f, textoParaBoton.c_str(), SKYBLUE);
                      btnPartida.Dibujar();
         
-                     if (btnPartida.FueClickeado()){
+                     if (tiempoTransicion <= 0 && btnPartida.FueClickeado()){
                         std::string nombreReal = lista[i]; 
                         int vic1 = 0, vic2 = 0;
                         archivos.leerTablero(matrizVisual, nombreReal, turno, modoJuego, varianteJuego,vic1,vic2);
+                        piezaColocada = false;
                         if (varianteJuego == 2){
                             switch(modoJuego){
                                 case 1:

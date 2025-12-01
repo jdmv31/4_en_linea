@@ -92,12 +92,10 @@ int Cpu::evaluarTablero(Tablero& tablero) {
 }
 
 int Cpu::evaluarVentana(vector<int> ventana) {
-    // ... (tu código de declaración de variables igual) ...
     int puntaje = 0;
-    int miColor = this->ficha.getColor(); 
+    int miColor = ficha.getColor(); 
     int opColor = (miColor == 1) ? 2 : 1; 
 
-    // Contadores (igual que antes)
     int misFichas = 0, opFichas = 0, vacios = 0;
     for (int val : ventana) {
         if (val == miColor) misFichas++;
@@ -105,31 +103,18 @@ int Cpu::evaluarVentana(vector<int> ventana) {
         else vacios++;
     }
 
-    // --- CORRECCIÓN DE PRIORIDADES ---
-    
-    // 1. GANAR (Yo tengo 4)
     if (misFichas == 4) return 10000; 
-
-    // 2. PERDER (El rival tiene 4) -> ¡ESTO FALTABA!
-    // Si no pones esto, a la IA le da igual que le ganes.
     else if (opFichas == 4) return -10000; 
-
-    // 3. BLOQUEO DE EMERGENCIA (Rival tiene 3 y hueco)
     else if (opFichas == 3 && vacios == 1) return -5000; 
-
-    // 4. Armar jugada ofensiva
     else if (misFichas == 3 && vacios == 1) return 100;
-    
-    // 5. Desarrollo
     else if (misFichas == 2 && vacios == 2) return 5;
 
     return 0;
 }
 
-// Verifica si el juego acabó para cortar la recursión
+
 bool Cpu::esNodoTerminal(Tablero& tablero) {
-    // Debe devolver true si el tablero está lleno O si alguien ya ganó (1 o 2)
-    // Asumo que tu clase Tablero tiene comprobarVictoria(), si no, úsalo del código anterior.
+    // Debe devolver true si el tablero está lleno o si alguien ya ganó (1 o 2)
     return tablero.tableroLleno() || tablero.comprobarVictoria() != 0;
 }
 
@@ -154,7 +139,7 @@ int Cpu::determinarJugada(Tablero& tablero) {
     }
     
     vector<int> prioridadColumnas = {3, 2, 4, 1, 5, 0, 6};
-    // josue: va a priorizar las columnas que estan al centro del tablero dejando de lado los q estan a los bordes6
+    // josue: va a priorizar las columnas que estan al centro del tablero dejando de lado los q estan a los bordes
 
     for (int col : prioridadColumnas) {
         if (tablero.columnaLibre(col)) {

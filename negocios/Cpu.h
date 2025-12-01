@@ -17,5 +17,5 @@ class Cpu : public Jugador{
     public:
         Cpu (std::string, int,Ficha);
         int determinarJugada(Tablero &tablero);
-        int calcularFichasConsecutivas();
+        int calcularFichasConsecutivas(void);
 };

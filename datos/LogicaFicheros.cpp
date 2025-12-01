@@ -6,7 +6,7 @@
 namespace fs = std::filesystem;
 
 
-GestorFicheros::GestorFicheros(){
+GestorFicheros::GestorFicheros(void){
     contadorPartidas = 0;
     nombrePartida = "";
 }
@@ -104,9 +104,13 @@ std::vector<std::string> GestorFicheros::obtenerPartidasGuardadas(void){
     fs::path ruta (RUTA_DATOS);
     fs::path carpeta = ruta / "partidasGuardadas";
 
-    if(fs::exists(carpeta)){
-        for (const auto & entrada : fs::directory_iterator(carpeta))
-            lista.push_back(entrada.path().filename().string());
+    if (fs::exists(carpeta)) {
+        fs::directory_iterator it(carpeta);
+        fs::directory_iterator fin; 
+        while (it != fin) {
+            lista.push_back(it->path().filename().string());
+            it++; 
+        }
     }
     return lista;
 }
